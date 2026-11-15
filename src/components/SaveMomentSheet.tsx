@@ -1,17 +1,18 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
+import { Plus, Sparkles, X } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { LIMITS, MEDIA_BUCKET, momentKeys, todayLocal } from "@/lib/moments";
 import { requestTranscription } from "@/lib/transcribe.functions";
 import { VoiceRecorder, type Voice } from "@/components/save/VoiceRecorder";
-import { fileExt, videoPoster } from "@/components/save/media";
+import { blobBase64, fileExt, smallImageDataUrl, videoPoster } from "@/components/save/media";
+import { suggestMomentMeta } from "@/lib/suggest.functions";
 
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
-const field = "w-full rounded-2xl border border-input bg-card px-4 py-3 outline-none focus:border-primary";
+const field = "w-full min-w-0 max-w-full rounded-2xl border border-input bg-card px-4 py-3 outline-none focus:border-primary";
 
 function usePreview(blob: Blob | null) {
   const [url, setUrl] = useState<string>();
@@ -43,6 +44,34 @@ function SaveMomentForm({ onSaved }: { onSaved: () => void }) {
   const photoUrl = usePreview(photo);
   const videoUrl = usePreview(video);
   const today = todayLocal();
+  const suggestFn = useServerFn(suggestMomentMeta);
+  const [suggesting, setSuggesting] = useState(false);
+  const latest = useRef(0);
+  const current = useRef({ title, emojis });
+  current.current = { title, emojis };
+
+  async function suggest(force = false) {
+    const source: "photo" | "video" | "voice" | null = photo ? "photo" : video ? "video" : voice ? "voice" : null;
+    if (!source) return;
+    const run = ++latest.current;
+    setSuggesting(true);
+    try {
+      const data = source === "voice"
+        ? { audio: await blobBase64(voice!.blob), audioType: voice!.blob.type }
+        : { image: await smallImageDataUrl(source === "photo" ? photo! : await videoPoster(video!)) };
+      const meta = await suggestFn({ data });
+      if (!meta || run !== latest.current) return;
+      if (force || !current.current.title.trim()) setTitle(meta.title);
+      if (force || !current.current.emojis.length) setEmojis(meta.emojis);
+    } catch { /* quiet: user fills it in */ }
+    finally { if (run === latest.current) setSuggesting(false); }
+  }
+  useEffect(() => {
+    if (!photo && !video && !voice) return;
+    if (voice && voice.blob.size > 10 * 1024 * 1024 && !photo && !video) return;
+    void suggest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photo, video, voice]);
 
   const valid = title.trim().length > 0 && emojis.length >= 1 && !!date && date <= today && !voiceBusy &&
     (!voice || voice.blob.size <= LIMITS.audio);
@@ -108,8 +137,10 @@ function SaveMomentForm({ onSaved }: { onSaved: () => void }) {
       </header>
       <fieldset disabled={saving} className="min-w-0 space-y-6">
         <label className="block space-y-2">
-          <span className="font-medium">Title</span>
-          <input className={field} placeholder="What happened?" maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} />
+          <span className="flex items-center justify-between gap-3"><span className="font-medium">Title</span>
+            {(photo || video || voice) && <button type="button" disabled={suggesting} onClick={() => void suggest(true)} className="inline-flex shrink-0 items-center gap-1 rounded-full border border-input px-3 py-1 text-xs disabled:opacity-50"><Sparkles className="h-3 w-3" />{suggesting ? "Thinking…" : "Suggest"}</button>}
+          </span>
+          <input className={field} placeholder={suggesting ? "Thinking of a title…" : "What happened?"} maxLength={80} value={title} onChange={(e) => setTitle(e.target.value)} />
           <span className="block text-right text-xs text-muted-foreground">{title.length}/80</span>
         </label>
 
@@ -141,7 +172,7 @@ function SaveMomentForm({ onSaved }: { onSaved: () => void }) {
 
         <label className="block space-y-2">
           <span className="font-medium">Date</span>
-          <input type="date" max={today} className={field} value={date} onChange={(e) => setDate(e.target.value)} />
+          <input type="date" max={today} className={`${field} appearance-none text-left`} value={date} onChange={(e) => setDate(e.target.value)} />
           {date > today && <span className="text-sm text-destructive">Pick today or an earlier day.</span>}
         </label>
 
