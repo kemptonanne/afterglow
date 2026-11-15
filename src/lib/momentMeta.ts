@@ -3,7 +3,8 @@ const EMOJI = /\p{Extended_Pictographic}/u;
 export function cleanMomentMeta(raw: unknown): { title: string; emojis: string[] } | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as { title?: unknown; emojis?: unknown };
-  const title = typeof r.title === "string" ? r.title.replace(/\s+/g, " ").trim().slice(0, 80).trim() : "";
+  let title = typeof r.title === "string" ? r.title.replace(/\s+/g, " ").trim().slice(0, 80).trim() : "";
+  if (title) title = title.charAt(0).toUpperCase() + title.slice(1);
   const list = Array.isArray(r.emojis) ? r.emojis : [];
   const emojis = [...new Set(list.filter((e): e is string => typeof e === "string").map((e) => e.trim()).filter((e) => e && [...e].length <= 8 && EMOJI.test(e) && !/[\p{L}\p{N}]/u.test(e)))].slice(0, 3);
   if (!title || !emojis.length) return null;
