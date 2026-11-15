@@ -26,7 +26,8 @@ const tabs = [
 
 export function AppShell() {
   const { data: profile } = useProfile();
-  const onWall = useRouterState({ select: (s) => s.location.pathname === "/wall" });
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const onWall = pathname === "/wall";
   const [searching, setSearching] = useState(false);
   useEffect(() => { const on = (e: Event) => setSearching(!!(e as CustomEvent<boolean>).detail); window.addEventListener("afterglow:searching", on); return () => window.removeEventListener("afterglow:searching", on); }, []);
   const hideNav = onWall && searching;
@@ -47,7 +48,7 @@ export function AppShell() {
         </div>
       </header>
       <main className={`flex-1 px-5 py-6 ${hideNav ? "pb-8" : "pb-32"}`}>
-        <Outlet />
+        <div key={pathname} className="animate-page"><Outlet /></div>
       </main>
       <nav aria-hidden={hideNav} inert={hideNav} className={`fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-md justify-around border-t bg-background py-2 transition-transform duration-200 ${hideNav ? "translate-y-full" : ""}`}>
         {tabs.map(({ to, label, icon: Icon }) => (
