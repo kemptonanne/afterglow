@@ -2,6 +2,7 @@ import { Link, Outlet } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Home, Layers, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AVATAR_BUCKET, signedUrl } from "@/lib/moments";
 
 function useProfile() {
   return useQuery({
@@ -9,8 +10,9 @@ function useProfile() {
     queryFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return null;
-      const { data } = await supabase.from("profiles").select("name").eq("id", u.user.id).maybeSingle();
-      return data;
+      const { data } = await supabase.from("profiles").select("name, avatar_path").eq("id", u.user.id).maybeSingle();
+      if (!data) return null;
+      return { ...data, avatarUrl: await signedUrl(data.avatar_path, AVATAR_BUCKET) };
     },
   });
 }
@@ -31,9 +33,9 @@ export function AppShell() {
         <Link
           to="/profile"
           aria-label="Your profile"
-          className="flex h-10 w-10 items-center justify-center rounded-full border bg-secondary font-serif text-lg text-foreground"
+          className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full border bg-secondary font-serif text-lg text-foreground"
         >
-          {initial}
+          {profile?.avatarUrl ? <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" /> : initial}
         </Link>
       </header>
       <main className="flex-1 px-5 py-6 pb-28">
