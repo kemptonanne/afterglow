@@ -32,9 +32,15 @@ export function useChapterImages(moments: Moment[]) {
   return { urls: state.key === key ? state.urls : {}, ready: state.key === key };
 }
 
+/** Fetch + shrink to ≤900px JPEG so phones (esp. iOS Safari) can render the poster reliably. */
 async function toDataUrl(url: string) {
   const blob = await (await fetch(url)).blob();
-  return await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = rej; r.readAsDataURL(blob); });
+  const bmp = await createImageBitmap(blob);
+  const scale = Math.min(1, 900 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+  c.getContext('2d')!.drawImage(bmp, 0, 0, c.width, c.height); bmp.close?.();
+  return c.toDataURL('image/jpeg', 0.88);
 }
 
 /** Poster mirrors the on-screen chapter (same 2-column layout), minus buttons and app chrome. */
@@ -78,7 +84,7 @@ export function ChapterPreview({ chapter, onSave, saved = false }: { chapter: Ch
       const node = poster.current; if (!node) return;
       await Promise.all(Array.from(node.querySelectorAll('img')).map(img => img.decode().catch(() => {})));
       const { toBlob } = await import('html-to-image');
-      const opts = { width: node.scrollWidth, height: node.scrollHeight, pixelRatio: 3, cacheBust: false };
+      const opts = { width: node.scrollWidth, height: node.scrollHeight, pixelRatio: Math.min(3, Math.max(2, window.devicePixelRatio || 2)), cacheBust: false };
       await toBlob(node, opts).catch(() => null); // warm-up: first Safari render can miss images
       const blob = await toBlob(node, opts);
       if (!blob) throw new Error('empty');
