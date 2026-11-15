@@ -52,6 +52,7 @@ export function AppShell() {
             to={to}
             search={(to === "/wall" ? { q: "", media: [], emojis: [], from: "", to: "" } : {}) as never}
             className="flex flex-col items-center gap-0.5 border-b-2 border-transparent px-4 pb-1 text-xs text-muted-foreground"
+            activeOptions={{ includeSearch: false }}
             activeProps={{ className: "!border-primary !text-primary font-medium" }}
           >
             <Icon className="h-5 w-5" />
