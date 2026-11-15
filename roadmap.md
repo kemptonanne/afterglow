@@ -1,14 +1,14 @@
 # afterglow roadmap
 - [x] 1 App shell, look, sign-in
 - [x] 2 Data and privacy
-- [ ] 3 Save a moment (photo/video bucket limit 100 MB)
-- [ ] 4 My wall
-- [ ] 5 Moment overlay and delete
-- [ ] 6 Voice transcript and summary (check transcription model is allowed)
-- [ ] 7 Search and filters
-- [ ] 8 Chapter picker
-- [ ] 9 Chapter screens
-- [ ] 10 Settings and profile
-- [ ] 11 Check-in emails (needs a sender email domain)
-- [ ] 12 Demo data and final pass
+- [x] Save a moment (photo/video bucket limit 100 MB)
+- [x] My wall
+- [x] Moment overlay and delete
+- [x] Voice transcript and summary (check transcription model is allowed)
+- [x] Search and filters
+- [x] Chapter picker
+- [x] Chapter screens
+- [x] Settings and profile
+- [ ] Check-in emails — blocked: needs a sender email domain (settings + schedule rules done)
+- [x] Demo data and final pass
 - [ ] User asked: build all remaining steps in parallel, asap

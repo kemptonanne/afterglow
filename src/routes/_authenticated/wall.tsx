@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Wall, validateWallSearch } from "@/components/wall/Wall";
+import { DemoLoader } from "@/components/wall/DemoLoader";
 
 export const Route = createFileRoute("/_authenticated/wall")({
   validateSearch: validateWallSearch,
@@ -17,5 +18,5 @@ export const Route = createFileRoute("/_authenticated/wall")({
 function Page() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
-  return <Wall search={search} update={next => { void navigate({ search: next, replace: true, resetScroll: false }); }} />;
+  return <><DemoLoader /><Wall search={search} update={next => { void navigate({ search: next, replace: true, resetScroll: false }); }} /></>;
 }
