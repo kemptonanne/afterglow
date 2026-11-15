@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Download, Share2 } from 'lucide-react';
 import { signedUrl, formatMomentDate, type Moment } from '@/lib/moments';
-import { posterLayout } from '@/lib/posterLayout';
 
 export interface ChapterDraft { title: string; start_date: string; end_date: string; moments: Moment[]; }
 export const primaryButton = 'w-full rounded-full bg-primary px-5 py-3 text-primary-foreground disabled:opacity-50';
@@ -38,18 +37,17 @@ async function toDataUrl(url: string) {
   return await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = rej; r.readAsDataURL(blob); });
 }
 
-/** Dedicated, fixed-canvas poster: never includes controls or private URLs as text. */
+/** Poster mirrors the on-screen chapter (same 2-column layout), minus buttons and app chrome. */
+export const POSTER_WIDTH = 430;
 export function ChapterPoster({ chapter, urls }: { chapter: ChapterDraft; urls: Record<string, string> }) {
-  const { columns, shown, more } = posterLayout(chapter.moments.length);
-  return <div className="flex h-[1920px] w-[1080px] flex-col overflow-hidden bg-background p-16 text-foreground" style={{ fontSize: 26 }}>
-    <p className="font-serif text-5xl italic">afterglow</p>
-    <h1 className="mt-12 font-serif text-6xl italic">{chapter.title}</h1>
-    <p className="mb-12 mt-5 text-2xl">{formatMomentDate(chapter.start_date)} – {formatMomentDate(chapter.end_date)}</p>
-    <div className="grid flex-1 content-start gap-x-7 gap-y-10 [&_h3]:text-2xl [&_p]:text-lg" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
-      {chapter.moments.slice(0, shown).map((m, i) => <div key={m.id} style={{ transform: `rotate(${i % 2 ? 2 : -2}deg)` }}><ChapterTile moment={m} url={urls[m.id]} /></div>)}
+  return <div className="flex flex-col bg-background px-6 pb-8 pt-7 text-foreground" style={{ width: POSTER_WIDTH }}>
+    <p className="font-serif text-2xl italic">afterglow</p>
+    <h1 className="mt-6 font-serif text-3xl italic">{chapter.title}</h1>
+    <p className="mt-2 text-sm text-muted-foreground">{formatMomentDate(chapter.start_date)} – {formatMomentDate(chapter.end_date)}</p>
+    <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-7 py-3">
+      {chapter.moments.map((m, i) => <div key={m.id} style={{ transform: `rotate(${i % 2 ? 2 : -2}deg)` }}><ChapterTile moment={m} url={urls[m.id]} /></div>)}
     </div>
-    {more > 0 && <p className="mt-6 text-center text-2xl">+{more} more</p>}
-    <p className="mt-8 text-center font-serif text-2xl italic">Little moments, kept.</p>
+    <p className="mt-6 text-center font-serif text-base italic">Little moments, kept.</p>
   </div>;
 }
 
@@ -80,7 +78,7 @@ export function ChapterPreview({ chapter, onSave, saved = false }: { chapter: Ch
       const node = poster.current; if (!node) return;
       await Promise.all(Array.from(node.querySelectorAll('img')).map(img => img.decode().catch(() => {})));
       const { toBlob } = await import('html-to-image');
-      const opts = { width: 1080, height: 1920, pixelRatio: 1, cacheBust: false };
+      const opts = { width: node.scrollWidth, height: node.scrollHeight, pixelRatio: 3, cacheBust: false };
       await toBlob(node, opts).catch(() => null); // warm-up: first Safari render can miss images
       const blob = await toBlob(node, opts);
       if (!blob) throw new Error('empty');
@@ -112,6 +110,6 @@ export function ChapterPreview({ chapter, onSave, saved = false }: { chapter: Ch
     {busy && <p role="status" className="text-center text-sm">Saving…</p>}
     {notice && <p role="status" className="text-center text-sm">{notice}</p>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-    <div aria-hidden="true" className="pointer-events-none fixed left-[-12000px] top-0"><div ref={poster} className="h-[1920px] w-[1080px]">{posterUrls && <ChapterPoster chapter={chapter} urls={posterUrls} />}</div></div>
+    <div aria-hidden="true" className="pointer-events-none fixed left-[-12000px] top-0"><div ref={poster} className="w-fit">{posterUrls && <ChapterPoster chapter={chapter} urls={posterUrls} />}</div></div>
   </section>;
 }
