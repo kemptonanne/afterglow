@@ -120,7 +120,7 @@ export function Composer({ hidden }: { hidden: boolean }) {
         </>}
       </div>
       {message && <p role="status" className="mt-1 text-center text-xs text-destructive">{message}</p>}
-      {ready && !recording && <p className="mt-1 text-center font-serif text-sm italic text-muted-foreground">Next: emojis, title &amp; story</p>}
+      {ready && !recording && <p className="mx-auto mt-1 w-fit rounded-full bg-background/90 px-3 text-center font-serif text-sm italic text-muted-foreground">Next: emojis, title &amp; story</p>}
       <input ref={photoInput} type="file" accept="image/*" hidden onChange={(e) => { pick("photo", e.target.files?.[0]); e.target.value = ""; }} />
       <input ref={videoInput} type="file" accept="video/*" hidden onChange={(e) => { pick("video", e.target.files?.[0]); e.target.value = ""; }} />
     </div>
