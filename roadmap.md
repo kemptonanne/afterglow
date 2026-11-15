@@ -1,0 +1,13 @@
+# afterglow roadmap
+- [x] 1 App shell, look, sign-in
+- [ ] 2 Data and privacy
+- [ ] 3 Save a moment (photo/video bucket limit 100 MB)
+- [ ] 4 My wall
+- [ ] 5 Moment overlay and delete
+- [ ] 6 Voice transcript and summary (check transcription model is allowed)
+- [ ] 7 Search and filters
+- [ ] 8 Chapter picker
+- [ ] 9 Chapter screens
+- [ ] 10 Settings and profile
+- [ ] 11 Check-in emails (needs a sender email domain)
+- [ ] 12 Demo data and final pass

@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Signed-in pages live under `src/routes/_authenticated/` (client-only gate redirecting to `/auth`); `/` only redirects. Why: the session is in browser storage, so the server cannot check it.
