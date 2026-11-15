@@ -20,3 +20,7 @@ When you add a photo, video or voice note while saving a moment, afterglow looks
 - In SaveMomentSheet: start a suggestion when a photo, video or voice note is added, keep only the latest request, and fill title and emojis only if they are still empty. Add the "✨ Suggest" button.
 - A unit test for cleaning up the model's reply: the 80-character title limit, emoji-only filtering, and the 1–3 count.
 - Check in the browser, signed in: pick a test photo and confirm the title and emojis fill in, then save.
+
+## Also: date box fix
+- On iPhone, the Date box on "Save a moment" runs past the right edge of the screen. It will be made to fit the screen width, lined up with the other boxes. The date boxes on Chapters and in the date filter get the same fix.
+- Technical: iOS Safari gives date inputs a minimum width of their own. Add `min-w-0 max-w-full appearance-none` to these inputs, plus a small global rule for `input[type=date]` (`-webkit-appearance: none; min-width: 0;` and left-aligned date text). Check at a 390px-wide phone screen size.
