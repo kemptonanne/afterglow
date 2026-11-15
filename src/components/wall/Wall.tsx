@@ -5,6 +5,9 @@ import { ArrowLeft, CalendarDays, ChevronDown, Pause, Play, Plus, Search, X } fr
 import { supabase } from '@/integrations/supabase/client';
 import { cardType, formatMomentDate, MEDIA_BUCKET, momentKeys, signedUrl, type Moment } from '@/lib/moments';
 import { SaveMomentSheet } from '@/components/SaveMomentSheet';
+import { useServerFn } from '@tanstack/react-start';
+import { requestTranscription } from '@/lib/transcribe.functions';
+import { transcriptView } from '@/lib/transcriptView';
 
 const types = ['text', 'photo', 'audio', 'video'] as const;
 type Media = typeof types[number];
@@ -50,19 +53,31 @@ function Modal({ title, children, close }: { title: string; children: React.Reac
 }
 function MomentOverlay({ initial, close }: { initial: Moment; close: () => void }) {
   const client = useQueryClient(), [confirm, setConfirm] = useState(false), [enlarged, setEnlarged] = useState(false);
-  const {data: m = initial} = useQuery({ queryKey: momentKeys.detail(initial.id), initialData: initial, queryFn: async () => { const {data,error} = await supabase.from('moments').select('*').eq('id', initial.id).single(); if(error) throw error; return data; }, refetchInterval: q => q.state.data?.transcription_status === 'pending' ? 4000 : false });
+  const {data: m = initial} = useQuery({ queryKey: momentKeys.detail(initial.id), initialData: initial, queryFn: async () => { const {data,error} = await supabase.from('moments').select('*').eq('id', initial.id).single(); if(error) throw error; return data; }, refetchInterval: q => q.state.data && transcriptView(q.state.data) === 'pending' ? 4000 : false });
   const photo = useMedia(m.photo_path), video = useMedia(m.video_path), poster = useMedia(m.video_poster_path);
   const deletion = useMutation({ mutationFn: async () => { const paths = [m.photo_path,m.video_path,m.video_poster_path,m.audio_path].filter((p): p is string => !!p); if(paths.length) { const {error} = await supabase.storage.from(MEDIA_BUCKET).remove([...new Set(paths)]); if(error) throw error; } const {error} = await supabase.from('moments').delete().eq('id',m.id); if(error) throw error; }, onSuccess: async () => { await client.invalidateQueries({queryKey: momentKeys.all}); close(); } });
   return <Dialog.Root open onOpenChange={v => { if(!v && !deletion.isPending) close(); }}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40"/><Dialog.Content aria-describedby={undefined} className="fixed inset-0 z-50 mx-auto max-w-md overflow-y-auto bg-background p-5 focus:outline-none">
     <button className="mb-5 flex items-center gap-2 text-sm" onClick={close} disabled={deletion.isPending}><ArrowLeft size={20}/>Back to my wall</button><Dialog.Title className="font-serif text-3xl">{m.title}</Dialog.Title><p className="my-3 flex items-center gap-2 text-sm text-muted-foreground"><CalendarDays size={16}/>{formatMomentDate(m.moment_date)}</p><div className="mb-6 flex flex-wrap gap-2">{m.emojis.map((e,i) => <span key={`${e}-${i}`} className="rounded-full border px-3 py-1 text-xl">{e}</span>)}</div>
     <div className="space-y-6">{m.photo_path && (photo ? <button className="block w-full" aria-label="Enlarge photo" onClick={() => setEnlarged(true)}><img src={photo} alt={m.title} className="w-full rounded-lg"/></button> : <p>Loading photo…</p>)}
     {m.video_path && (video ? <video key={video} controls playsInline preload="metadata" src={video} poster={poster || undefined} className="w-full rounded-lg"/> : <p>Loading video…</p>)}
-    {m.audio_path && <div className="paper-panel rounded-xl p-4"><AudioPlayer path={m.audio_path} duration={m.audio_duration_seconds}/>{m.audio_summary && <p className="mt-3 font-serif italic">{m.audio_summary}</p>}{m.transcription_status === 'pending' && <p role="status" className="mt-3 text-sm italic text-muted-foreground">Writing it down…</p>}</div>}
+    {m.audio_path && <div className="paper-panel rounded-xl p-4"><AudioPlayer path={m.audio_path} duration={m.audio_duration_seconds}/><VoiceText m={m}/></div>}
     {m.body_text && <p className="whitespace-pre-wrap break-words leading-relaxed">{m.body_text}</p>}</div>
     <button onClick={() => setConfirm(true)} className="mt-12 w-full py-4 text-sm text-muted-foreground underline">Delete moment</button>
     {confirm && <Modal title="Delete this moment?" close={() => {if(!deletion.isPending) setConfirm(false);}}><p>This can't be undone.</p>{deletion.isError && <p role="alert" className="mt-3 text-destructive">Couldn’t delete. Try again.</p>}<div className="mt-6 flex justify-end gap-3"><button disabled={deletion.isPending} className={pill} onClick={() => setConfirm(false)}>Cancel</button><button disabled={deletion.isPending} className={`${pill} bg-primary text-primary-foreground`} onClick={() => deletion.mutate()}>{deletion.isPending ? 'Deleting…' : 'Delete'}</button></div></Modal>}
     {enlarged && photo && <Dialog.Root open onOpenChange={setEnlarged}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-50 bg-foreground/90"/><Dialog.Content aria-describedby={undefined} className="fixed inset-0 z-50 flex flex-col items-center justify-center p-4"><Dialog.Title className="sr-only">{m.title} photo</Dialog.Title><Dialog.Close aria-label="Close enlarged photo" className="absolute right-4 top-4 rounded-full bg-background p-3"><X/></Dialog.Close><img src={photo} alt={m.title} className="max-h-[85dvh] max-w-full object-contain"/></Dialog.Content></Dialog.Portal></Dialog.Root>}
   </Dialog.Content></Dialog.Portal></Dialog.Root>;
+}
+function VoiceText({ m }: { m: Moment }) {
+  const client = useQueryClient(), transcribe = useServerFn(requestTranscription);
+  const retry = useMutation({ mutationFn: () => transcribe({ data: { momentId: m.id } }), onMutate: () => client.setQueryData(momentKeys.detail(m.id), { ...m, transcription_status: 'pending', created_at: new Date().toISOString() }), onSettled: () => client.invalidateQueries({ queryKey: momentKeys.all }) });
+  const view = retry.isPending ? 'pending' : transcriptView(m);
+  return <>
+    {m.audio_summary && <p className="mt-3 font-serif italic">{m.audio_summary}</p>}
+    {view === 'pending' && <p role="status" className="mt-3 text-sm italic text-muted-foreground">Writing it down…</p>}
+    {view === 'failed' && <div role="alert" className="mt-3 flex items-center justify-between gap-3 text-sm"><span>Couldn’t write this one down.</span><button className={`${pill} border border-primary text-primary`} onClick={() => retry.mutate()}>Try again</button></div>}
+    {view === 'too_large' && <p className="mt-3 text-sm text-muted-foreground">This recording is too long to write down, but it’s saved.</p>}
+    {view === 'done' && m.transcript && <details className="mt-4 border-t pt-3"><summary className="cursor-pointer text-sm font-medium">Transcript</summary><p className="mt-2 whitespace-pre-wrap break-words leading-relaxed">{m.transcript}</p></details>}
+  </>;
 }
 function DateSheet({ search, update, close }: {search: WallSearch; update: (s: WallSearch) => void; close: () => void}) {
   const [from,setFrom] = useState(search.from), [to,setTo] = useState(search.to);
