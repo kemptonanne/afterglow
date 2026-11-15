@@ -40,3 +40,19 @@ export function fileExt(file: File, fallback: string) {
   const c = file.name.split(".").pop()?.toLowerCase();
   return c && /^[a-z0-9]{1,8}$/.test(c) ? c : fallback;
 }
+
+/** Shrink an image to a ~768px JPEG data URL for AI analysis. */
+export async function smallImageDataUrl(blob: Blob, max = 768): Promise<string> {
+  const bmp = await createImageBitmap(blob);
+  const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);
+  c.getContext("2d")!.drawImage(bmp, 0, 0, c.width, c.height);
+  bmp.close();
+  return c.toDataURL("image/jpeg", 0.8);
+}
+
+export async function blobBase64(blob: Blob): Promise<string> {
+  const url = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result as string); r.onerror = rej; r.readAsDataURL(blob); });
+  return url.slice(url.indexOf(",") + 1);
+}
