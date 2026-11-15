@@ -1,6 +1,6 @@
-import { Link, Outlet } from "@tanstack/react-router";
+import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Home, Layers, Settings } from "lucide-react";
+import { Home, Layers, Search, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AVATAR_BUCKET, signedUrl } from "@/lib/moments";
 
@@ -25,23 +25,27 @@ const tabs = [
 
 export function AppShell() {
   const { data: profile } = useProfile();
+  const onWall = useRouterState({ select: (s) => s.location.pathname === "/wall" });
   const initial = (profile?.name || "?").trim().charAt(0).toUpperCase();
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col">
-      <header className="flex items-center justify-between border-b px-5 pb-3 pt-5">
-        <Link to="/wall" search={{ q: "", media: [], emojis: [], from: "", to: "" }} className="font-serif text-3xl italic text-foreground">afterglow</Link>
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-5 pb-3 pt-5">
+        <Link to="/wall" search={{ q: "", media: [], emojis: [], from: "", to: "" }} className="truncate font-serif text-3xl italic text-foreground">afterglow</Link>
+        <div className="flex shrink-0 items-center gap-2">
+        {onWall && <button type="button" aria-label="Search your moments" onClick={() => window.dispatchEvent(new Event("afterglow:search"))} className="flex h-10 w-10 items-center justify-center rounded-full text-foreground hover:bg-sage focus-visible:outline-2 focus-visible:outline-ring"><Search className="h-5 w-5" /></button>}
         <Link
           to="/profile"
           aria-label="Your profile"
-          className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full border bg-secondary font-serif text-lg text-foreground"
+          className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full bg-sage font-serif text-lg text-foreground"
         >
           {profile?.avatarUrl ? <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" /> : initial}
         </Link>
+        </div>
       </header>
-      <main className="flex-1 px-5 py-6 pb-28">
+      <main className="flex-1 px-5 py-6 pb-32">
         <Outlet />
       </main>
-      <nav className="fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-md justify-around border-t bg-background/95 py-2 backdrop-blur">
+      <nav className="fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-md justify-around border-t bg-background py-2">
         {tabs.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
