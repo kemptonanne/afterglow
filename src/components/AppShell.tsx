@@ -31,17 +31,24 @@ export function AppShell() {
   const [searching, setSearching] = useState(false);
   useEffect(() => { const on = (e: Event) => setSearching(!!(e as CustomEvent<boolean>).detail); window.addEventListener("afterglow:searching", on); return () => window.removeEventListener("afterglow:searching", on); }, []);
   const hideNav = onWall && searching;
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    let raf = 0;
+    const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => setCollapsed((c) => (c ? window.scrollY > 16 : window.scrollY > 48))); };
+    on(); window.addEventListener("scroll", on, { passive: true });
+    return () => { window.removeEventListener("scroll", on); cancelAnimationFrame(raf); };
+  }, []);
   const initial = (profile?.name || "?").trim().charAt(0).toUpperCase();
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-5 pb-3 pt-5">
-        <Link to="/wall" search={{ q: "", media: [], emojis: [], from: "", to: "" }} className="truncate font-serif text-3xl italic text-foreground">afterglow</Link>
+      <header className={`sticky top-0 z-30 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b bg-background/90 px-5 backdrop-blur-md transition-all duration-300 ease-out ${collapsed ? "pb-2 pt-2 shadow-[0_6px_20px_-14px_color-mix(in_oklab,var(--foreground)_40%,transparent)]" : "pb-3 pt-5"}`}>
+        <Link to="/wall" search={{ q: "", media: [], emojis: [], from: "", to: "" }} className={`origin-left truncate font-serif italic text-foreground transition-all duration-300 ease-out ${collapsed ? "text-2xl" : "text-3xl"}`}>afterglow</Link>
         <div className="flex shrink-0 items-center gap-2">
         {onWall && <button type="button" aria-label="Search your moments" onClick={() => window.dispatchEvent(new Event("afterglow:search"))} className="flex h-10 w-10 items-center justify-center rounded-full text-foreground hover:bg-sage focus-visible:outline-2 focus-visible:outline-ring"><Search className="h-5 w-5" /></button>}
         <Link
           to="/profile"
           aria-label="Your profile"
-          className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full bg-sage font-serif text-lg text-foreground"
+          className={`flex overflow-hidden items-center justify-center rounded-full bg-sage font-serif text-foreground transition-all duration-300 ${collapsed ? "h-8 w-8 text-base" : "h-10 w-10 text-lg"}`}
         >
           {profile?.avatarUrl ? <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" /> : initial}
         </Link>
