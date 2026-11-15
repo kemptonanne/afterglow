@@ -1,6 +1,6 @@
 # afterglow roadmap
 - [x] 1 App shell, look, sign-in
-- [ ] 2 Data and privacy
+- [x] 2 Data and privacy
 - [ ] 3 Save a moment (photo/video bucket limit 100 MB)
 - [ ] 4 My wall
 - [ ] 5 Moment overlay and delete
@@ -11,3 +11,4 @@
 - [ ] 10 Settings and profile
 - [ ] 11 Check-in emails (needs a sender email domain)
 - [ ] 12 Demo data and final pass
+- [ ] User asked: build all remaining steps in parallel, asap
