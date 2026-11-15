@@ -42,10 +42,10 @@ function audioDuration(blob: Blob) {
   });
 }
 
-export type MomentStart = { words?: string; photo?: File; video?: File; voice?: Voice };
+export type MomentStart = { words?: string | undefined; photo?: File | undefined; video?: File | undefined; voice?: Voice | undefined };
 function startKind(i?: MomentStart): Kind | null { return !i ? null : i.photo ? "photo" : i.video ? "video" : i.voice ? "voice" : "text"; }
 
-function SaveMomentForm({ onSaved, close, initial }: { onSaved: () => void; close: () => void; initial?: MomentStart }) {
+function SaveMomentForm({ onSaved, close, initial }: { onSaved: () => void; close: () => void; initial?: MomentStart | undefined }) {
   const qc = useQueryClient();
   const transcribe = useServerFn(requestTranscription);
   const draftFn = useServerFn(transcribeDraft);
@@ -342,7 +342,7 @@ function SaveMomentForm({ onSaved, close, initial }: { onSaved: () => void; clos
   );
 }
 
-export function SaveMomentSheet({ open, onOpenChange, initial, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; initial?: MomentStart; onSaved?: () => void }) {
+export function SaveMomentSheet({ open, onOpenChange, initial, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; initial?: MomentStart | undefined; onSaved?: () => void }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-dvh overflow-y-auto border-0 bg-background p-0">
