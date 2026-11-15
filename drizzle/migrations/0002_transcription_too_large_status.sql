@@ -1,0 +1,2 @@
+ALTER TABLE public.moments DROP CONSTRAINT moments_transcription_status_check;
+ALTER TABLE public.moments ADD CONSTRAINT moments_transcription_status_check CHECK (transcription_status = ANY (ARRAY['none','pending','done','failed','too_large']));
