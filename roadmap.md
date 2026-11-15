@@ -11,4 +11,4 @@
 - [x] Settings and profile
 - [ ] Check-in emails — blocked: needs a sender email domain (settings + schedule rules done)
 - [x] Demo data and final pass
-- [ ] User asked: build all remaining steps in parallel, asap
+- [x] User asked: build all remaining steps in parallel, asap
