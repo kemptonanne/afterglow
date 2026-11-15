@@ -42,20 +42,23 @@ function audioDuration(blob: Blob) {
   });
 }
 
-function SaveMomentForm({ onSaved, close }: { onSaved: () => void; close: () => void }) {
+export type MomentStart = { words?: string | undefined; photo?: File | undefined; video?: File | undefined; voice?: Voice | undefined };
+function startKind(i?: MomentStart): Kind | null { return !i ? null : i.photo ? "photo" : i.video ? "video" : i.voice ? "voice" : "text"; }
+
+function SaveMomentForm({ onSaved, close, initial }: { onSaved: () => void; close: () => void; initial?: MomentStart | undefined }) {
   const qc = useQueryClient();
   const transcribe = useServerFn(requestTranscription);
   const draftFn = useServerFn(transcribeDraft);
   const suggestFn = useServerFn(suggestMomentMeta);
-  const [step, setStep] = useState<Step>("type");
-  const [kind, setKind] = useState<Kind | null>(null);
+  const [step, setStep] = useState<Step>(initial ? "details" : "type");
+  const [kind, setKind] = useState<Kind | null>(() => startKind(initial));
   const [title, setTitle] = useState("");
   const [emojis, setEmojis] = useState<string[]>([]);
   const [date, setDate] = useState(todayLocal);
-  const [words, setWords] = useState("");
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [video, setVideo] = useState<File | null>(null);
-  const [voice, setVoice] = useState<Voice | null>(null);
+  const [words, setWords] = useState(initial?.words ?? "");
+  const [photo, setPhoto] = useState<File | null>(initial?.photo ?? null);
+  const [video, setVideo] = useState<File | null>(initial?.video ?? null);
+  const [voice, setVoice] = useState<Voice | null>(initial?.voice ?? null);
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [drafting, setDrafting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -131,6 +134,16 @@ function SaveMomentForm({ onSaved, close }: { onSaved: () => void; close: () => 
     } catch { /* quiet: user fills it in */ }
     finally { if (run === latest.current) setSuggesting(false); }
   }
+
+  // Arriving from the wall's composer: go straight to details and suggest a title.
+  useEffect(() => {
+    if (!initial) return;
+    void (async () => {
+      if (initial.video) posterRef.current = await videoPoster(initial.video).catch(() => null);
+      void suggest();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function toDetails() { setStep("details"); setPickerOpen(false); void suggest(); }
   function back() {
@@ -329,11 +342,11 @@ function SaveMomentForm({ onSaved, close }: { onSaved: () => void; close: () => 
   );
 }
 
-export function SaveMomentSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+export function SaveMomentSheet({ open, onOpenChange, initial, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; initial?: MomentStart | undefined; onSaved?: () => void }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-dvh overflow-y-auto border-0 bg-background p-0">
-        {open && <SaveMomentForm onSaved={() => onOpenChange(false)} close={() => onOpenChange(false)} />}
+        {open && <SaveMomentForm initial={initial} onSaved={() => { onSaved?.(); onOpenChange(false); }} close={() => onOpenChange(false)} />}
       </SheetContent>
     </Sheet>
   );
