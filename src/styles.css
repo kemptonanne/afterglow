@@ -103,7 +103,6 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 @utility animate-entry { animation: ag-fade-up 420ms cubic-bezier(.2,.7,.2,1) both; }
 @utility animate-drop { animation: ag-slide-down 240ms cubic-bezier(.2,.7,.2,1) both; }
 
-div[data-state="open"][style*="pointer-events"] { animation: ag-fade 220ms ease-out both; }
 [role="dialog"][data-state="open"] { animation: ag-rise 300ms cubic-bezier(.2,.7,.2,1) both; }
 button, a { transition: transform 150ms ease, background-color 200ms ease, color 200ms ease, opacity 200ms ease; }
 button:active:not(:disabled) { transform: scale(0.97); }
