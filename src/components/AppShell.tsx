@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Home, Layers, Search, Settings } from "lucide-react";
@@ -26,6 +27,9 @@ const tabs = [
 export function AppShell() {
   const { data: profile } = useProfile();
   const onWall = useRouterState({ select: (s) => s.location.pathname === "/wall" });
+  const [searching, setSearching] = useState(false);
+  useEffect(() => { const on = (e: Event) => setSearching(!!(e as CustomEvent<boolean>).detail); window.addEventListener("afterglow:searching", on); return () => window.removeEventListener("afterglow:searching", on); }, []);
+  const hideNav = onWall && searching;
   const initial = (profile?.name || "?").trim().charAt(0).toUpperCase();
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col">
@@ -42,10 +46,10 @@ export function AppShell() {
         </Link>
         </div>
       </header>
-      <main className="flex-1 px-5 py-6 pb-32">
+      <main className={`flex-1 px-5 py-6 ${hideNav ? "pb-8" : "pb-32"}`}>
         <Outlet />
       </main>
-      <nav className="fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-md justify-around border-t bg-background py-2">
+      <nav aria-hidden={hideNav} inert={hideNav} className={`fixed inset-x-0 bottom-0 mx-auto flex w-full max-w-md justify-around border-t bg-background py-2 transition-transform duration-200 ${hideNav ? "translate-y-full" : ""}`}>
         {tabs.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
