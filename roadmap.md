@@ -14,4 +14,4 @@
 - [x] User asked: build all remaining steps in parallel, asap
 
 - [ ] Redo "Save a moment" flow to match Nov 14 4:47 PM mockups
-- [ ] PWA manifest + home-screen icons
+- [x] PWA manifest + home-screen icons
