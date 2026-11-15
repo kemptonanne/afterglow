@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link, useNavigate } from '@tanstack/react-router';
+import * as Dialog from '@radix-ui/react-dialog';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, LockKeyhole, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
@@ -100,7 +101,16 @@ export function SavedChapterPage({ chapterId }: { chapterId: string }) {
     const byId = new Map((moments || []).map(m => [m.id, m]));
     return { ...data, moments: data.moment_ids.flatMap(id => { const m = byId.get(id); return m ? [m] : []; }) };
   } });
+  const client = useQueryClient(), navigate = useNavigate(), [confirm, setConfirm] = useState(false);
+  const deletion = useMutation({ mutationFn: async () => { const { error } = await supabase.from('chapters').delete().eq('id', chapterId); if (error) throw error; },
+    onSuccess: async () => { client.removeQueries({ queryKey: ['chapters', chapterId] }); await client.invalidateQueries({ queryKey: chapterKeys }); navigate({ to: '/chapters' }); } });
   return <div className="space-y-6"><Link to="/chapters" className="flex items-center gap-2 text-sm"><ArrowLeft size={18} />Chapters</Link>
-    {chapter.isPending ? <p role="status">Loading your chapter…</p> : chapter.isError ? <div role="alert"><p>Couldn't load chapter.</p><button onClick={() => chapter.refetch()} className="underline">Try again</button></div> : !chapter.data ? <p>Chapter not found.</p> : <ChapterPreview chapter={chapter.data} saved />}
+    {chapter.isPending ? <p role="status">Loading your chapter…</p> : chapter.isError ? <div role="alert"><p>Couldn't load chapter.</p><button onClick={() => chapter.refetch()} className="underline">Try again</button></div> : !chapter.data ? <p>Chapter not found.</p> : <><ChapterPreview chapter={chapter.data} saved /><button onClick={() => { deletion.reset(); setConfirm(true); }} className="mt-6 w-full py-4 text-sm text-muted-foreground underline">Delete chapter</button></>}
+    <Dialog.Root open={confirm} onOpenChange={v => { if (!deletion.isPending) setConfirm(v); }}><Dialog.Portal><Dialog.Overlay className="fixed inset-0 z-40 bg-foreground/40" /><Dialog.Content className="paper-panel fixed left-1/2 top-1/2 z-50 w-[calc(100%-2.5rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl p-6 focus:outline-none">
+      <Dialog.Title className="font-serif text-2xl">Delete this chapter?</Dialog.Title>
+      <Dialog.Description className="mt-2 text-sm text-muted-foreground">Your moments stay on your wall. Only this chapter goes away.</Dialog.Description>
+      {deletion.isError && <p role="alert" className="mt-3 text-sm text-destructive">Couldn't delete. Try again.</p>}
+      <div className="mt-6 flex justify-end gap-3"><button disabled={deletion.isPending} className="rounded-full border px-4 py-2 text-sm" onClick={() => setConfirm(false)}>Cancel</button><button disabled={deletion.isPending} className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60" onClick={() => deletion.mutate()}>{deletion.isPending ? 'Deleting…' : 'Delete'}</button></div>
+    </Dialog.Content></Dialog.Portal></Dialog.Root>
   </div>;
 }
