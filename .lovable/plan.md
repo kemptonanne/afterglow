@@ -10,4 +10,4 @@ If you don't like it, you can go back to the earlier version from History. Then 
 
 ## Technical notes
 - The draft is accepted with drafts--accept, which runs after the turn ends. The phone-size check and the publish happen in the next turn, once the accept has gone through.
-- The draft's only known leftover: the "My wall" tab isn't underlined while search is open. It is left as is unless you ask.
+- After the accept, fix the "My wall" tab so it stays underlined while search is open (the wall with search filters still counts as My wall). This lands before the publish.
