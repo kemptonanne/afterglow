@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Wall, validateWallSearch } from "@/components/wall/Wall";
 
 export const Route = createFileRoute("/_authenticated/wall")({
+  validateSearch: validateWallSearch,
   head: () => ({
     meta: [
       { title: "My wall — afterglow" },
@@ -13,10 +15,7 @@ export const Route = createFileRoute("/_authenticated/wall")({
 });
 
 function Page() {
-  return (
-    <section className="paper-panel rounded-2xl p-6 text-center">
-      <h1 className="text-2xl">My wall</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Your good moments will be pinned here.</p>
-    </section>
-  );
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  return <Wall search={search} update={next => { void navigate({ search: next, replace: true, resetScroll: false }); }} />;
 }
