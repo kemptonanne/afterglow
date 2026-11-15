@@ -15,3 +15,4 @@
 
 - [x] Redo "Save a moment" flow to match Nov 14 4:47 PM mockups
 - [x] PWA manifest + home-screen icons
+- [ ] Chapter download image should match the on-screen chapter layout (not tiny tiles on a big page)
