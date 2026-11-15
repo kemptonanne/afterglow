@@ -6,7 +6,7 @@ export interface ChapterDraft { title: string; start_date: string; end_date: str
 export const primaryButton = 'w-full rounded-full bg-primary px-5 py-3 text-primary-foreground disabled:opacity-50';
 const outlineButton = 'flex items-center justify-center gap-2 rounded-full border border-primary px-4 py-3 text-primary disabled:opacity-50';
 
-export function ChapterTile({ moment, url, compact = false }: { moment: Moment; url?: string; compact?: boolean }) {
+export function ChapterTile({ moment, url, compact = false }: { moment: Moment; url?: string | undefined; compact?: boolean }) {
   const picture = !!(moment.photo_path || moment.video_path);
   return <article className="paper-panel relative min-w-0 rounded-md border border-card p-2 shadow-md">
     <span aria-hidden="true" className="absolute -top-2 left-1/3 h-5 w-16 -rotate-6 bg-accent/80" />

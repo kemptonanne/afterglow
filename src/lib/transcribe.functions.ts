@@ -17,7 +17,7 @@ export const requestTranscription = createServerFn({ method: "POST" })
     if (lookupError || !moment?.audio_path) return { ok: false };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const setStatus = (fields: Record<string, string>) =>
+    const setStatus = (fields: { transcription_status: string; transcript?: string; audio_summary?: string }) =>
       supabaseAdmin.from("moments").update(fields).eq("id", moment.id);
 
     try {
@@ -35,7 +35,7 @@ export const requestTranscription = createServerFn({ method: "POST" })
         model: "openai/gpt-transcribe",
         file: new File([audio], filename, { type: audio.type || "audio/webm" }),
       });
-      const transcript = transcription.text.trim();
+      const transcript = (typeof transcription === "string" ? transcription : transcription.text).trim();
       if (!transcript) throw new Error("No speech detected");
 
       const response = await generateResponse({

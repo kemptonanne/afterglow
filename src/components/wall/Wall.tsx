@@ -10,7 +10,8 @@ const types = ['text', 'photo', 'audio', 'video'] as const;
 type Media = typeof types[number];
 export type WallSearch = { q: string; media: Media[]; emojis: string[]; from: string; to: string };
 const validDate = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v)) ? v : '';
-export function validateWallSearch(s: Record<string, unknown>): WallSearch {
+export function validateWallSearch(input: Partial<WallSearch>): WallSearch {
+  const s = input as Record<string, unknown>;
   const list = (v: unknown): string[] => Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : typeof v === 'string' ? [v] : [];
   return { q: typeof s['q'] === 'string' ? s['q'] : '', media: list(s['media']).filter((x): x is Media => types.includes(x as Media)), emojis: list(s['emojis']), from: validDate(s['from']), to: validDate(s['to']) };
 }
