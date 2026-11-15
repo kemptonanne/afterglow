@@ -14,6 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
+      chapters: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          moment_ids: string[]
+          start_date: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          moment_ids?: string[]
+          start_date: string
+          title: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          moment_ids?: string[]
+          start_date?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      checkin_settings: {
+        Row: {
+          anchor_date: string | null
+          enabled: boolean
+          frequency: string
+          interval_days: number | null
+          last_sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          anchor_date?: string | null
+          enabled?: boolean
+          frequency?: string
+          interval_days?: number | null
+          last_sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          anchor_date?: string | null
+          enabled?: boolean
+          frequency?: string
+          interval_days?: number | null
+          last_sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      moments: {
+        Row: {
+          audio_duration_seconds: number | null
+          audio_path: string | null
+          audio_summary: string | null
+          body_text: string | null
+          created_at: string
+          emojis: string[]
+          id: string
+          moment_date: string
+          photo_path: string | null
+          title: string
+          transcript: string | null
+          transcription_status: string
+          user_id: string
+          video_path: string | null
+          video_poster_path: string | null
+        }
+        Insert: {
+          audio_duration_seconds?: number | null
+          audio_path?: string | null
+          audio_summary?: string | null
+          body_text?: string | null
+          created_at?: string
+          emojis: string[]
+          id?: string
+          moment_date?: string
+          photo_path?: string | null
+          title: string
+          transcript?: string | null
+          transcription_status?: string
+          user_id?: string
+          video_path?: string | null
+          video_poster_path?: string | null
+        }
+        Update: {
+          audio_duration_seconds?: number | null
+          audio_path?: string | null
+          audio_summary?: string | null
+          body_text?: string | null
+          created_at?: string
+          emojis?: string[]
+          id?: string
+          moment_date?: string
+          photo_path?: string | null
+          title?: string
+          transcript?: string | null
+          transcription_status?: string
+          user_id?: string
+          video_path?: string | null
+          video_poster_path?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_path: string | null
