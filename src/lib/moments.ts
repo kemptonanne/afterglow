@@ -14,7 +14,7 @@ export const momentKeys = {
 
 /** "Nov 14, 2026" from a YYYY-MM-DD date without time-zone shifts. */
 export function formatMomentDate(d: string) {
-  const [y, m, day] = d.split("-").map(Number);
+  const [y = 1970, m = 1, day = 1] = d.split("-").map(Number);
   return new Date(y, m - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
