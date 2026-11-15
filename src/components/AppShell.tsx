@@ -29,7 +29,7 @@ export function AppShell() {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col">
       <header className="flex items-center justify-between border-b px-5 pb-3 pt-5">
-        <Link to="/wall" className="font-serif text-3xl italic text-foreground">afterglow</Link>
+        <Link to="/wall" search={{ q: "", media: [], emojis: [], from: "", to: "" }} className="font-serif text-3xl italic text-foreground">afterglow</Link>
         <Link
           to="/profile"
           aria-label="Your profile"
@@ -46,6 +46,7 @@ export function AppShell() {
           <Link
             key={to}
             to={to}
+            search={(to === "/wall" ? { q: "", media: [], emojis: [], from: "", to: "" } : {}) as never}
             className="flex flex-col items-center gap-0.5 border-b-2 border-transparent px-4 pb-1 text-xs text-muted-foreground"
             activeProps={{ className: "!border-primary !text-primary font-medium" }}
           >

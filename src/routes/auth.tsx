@@ -42,12 +42,12 @@ function AuthPage() {
         },
       });
       if (error) setError(error.message);
-      else if (data.session) navigate({ to: "/wall", replace: true });
+      else if (data.session) navigate({ to: "/wall", search: { q: "", media: [], emojis: [], from: "", to: "" }, replace: true });
       else setNotice("Check your email to confirm your account, then sign in.");
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
-      else navigate({ to: "/wall", replace: true });
+      else navigate({ to: "/wall", search: { q: "", media: [], emojis: [], from: "", to: "" }, replace: true });
     }
     setBusy(false);
   }
