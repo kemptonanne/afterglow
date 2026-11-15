@@ -1,3 +1,4 @@
+import { ChaptersPage } from "@/components/chapters/ChaptersPage";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/chapters")({
@@ -13,10 +14,5 @@ export const Route = createFileRoute("/_authenticated/chapters")({
 });
 
 function Page() {
-  return (
-    <section className="paper-panel rounded-2xl p-6 text-center">
-      <h1 className="text-2xl">Chapters</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Little collections of your moments will live here.</p>
-    </section>
-  );
+  return <ChaptersPage />;
 }
